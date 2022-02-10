@@ -1,5 +1,5 @@
-CXX = clang++
-GLUT = $$(pkg-config --libs glut) $$(pkg-config --cflags glut)
+CXX = g++
+GLUT = -I/usr/include/GL -lglut
 GL = $$(pkg-config --libs gl) $$(pkg-config --cflags gl)
 
 out: main.cpp
