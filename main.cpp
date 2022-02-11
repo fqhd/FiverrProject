@@ -1,9 +1,8 @@
 // badprog.com
 #include <iostream>
+#include <fstream>
 #include <freeglut.h>
 #include <vector>
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 // This function draws the grid
 void drawGrid(int rows, int columns){
@@ -38,6 +37,55 @@ GLuint MakeTexture(unsigned char* pixels, int w, int h){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
     return tid;
+}
+
+unsigned char* ReadImage(const char* file_name, int* w, int* h){
+    std::ifstream f;
+    f.open(file_name, std::ios::in | std::ios::binary);
+
+    if(!f.is_open()){
+        std::cout << "Failed to open file" << std::endl;
+        return nullptr;
+    }
+
+    const int fileHeaderSize = 14;
+    const int infoHeaderSize = 40;
+
+    unsigned char fileHeader[fileHeaderSize];
+    f.read(reinterpret_cast<char*>(fileHeader), fileHeaderSize);
+
+    if(fileHeader[0] != 'B' || fileHeader[1] != 'M'){
+        std::cout << "File is not a bitmap" << std::endl;
+        f.close();
+        return nullptr;
+    }
+
+    unsigned char infoHeader[infoHeaderSize];
+    f.read(reinterpret_cast<char*>(infoHeader), infoHeaderSize);
+
+    int fileSize = fileHeader[2] + (fileHeader[3] << 8) + (fileHeader[4] << 16) + (fileHeader[5] << 24);
+    *w = infoHeader[4] + (infoHeader[5] << 8) + (infoHeader[6] << 16) + (infoHeader[7] << 24);
+    *h = infoHeader[8] + (infoHeader[9] << 8) + (infoHeader[10] << 16) + (infoHeader[11] << 24);
+
+    unsigned char* data = new unsigned char[*w * *h * 3];
+
+    const int paddingAmount = ((4 - (*w * 3) % 4) % 4);
+    int index = 0;
+
+    for(int y = 0; y < *h; y++){
+        for(int x = 0; x < *w; x++){
+            unsigned char color[3];
+            f.read(reinterpret_cast<char*>(color), 3);
+            data[index + 0] = color[2];
+            data[index + 1] = color[1];
+            data[index + 2] = color[0];
+            index+=3;
+        }
+        f.ignore(paddingAmount);
+    }
+
+    f.close();
+    return data;
 }
 
 // This function draws a picture in every cell of the grid
@@ -78,17 +126,30 @@ void display(void) {
 
     const int rows = 4;
     const int columns = 3;
-    stbi_set_flip_vertically_on_load(true); // Making sure the image flips vertically on load
+
+    std::vector<const char*> fileNames = {
+        "1.bmp",
+        "2.bmp",
+        "3.bmp",
+        "4.bmp",
+        "5.bmp",
+        "6.bmp",
+        "7.bmp",
+        "8.bmp",
+        "9.bmp",
+        "10.bmp",
+        "11.bmp",
+        "12.bmp"
+    };
 
     // Loading all the textures and storing them in a vector of texture IDs(GLuint)
     std::vector<GLuint> textures;
-    for(int i = 1; i <= rows*columns; i++){
-        std::string fileName = std::to_string(i);
-        fileName += ".bmp"; // Adding bmp extension to file name
-        int w, h, c; // Width, height and number of channels per pixel in image
-        unsigned char* data = stbi_load(fileName.c_str(), &w, &h, &c, 0); // Loading the image
+    for(int i = 0; i < rows*columns; i++){
+        int w, h; // Width, height and number of channels per pixel in image
+        unsigned char* data = ReadImage(fileNames[i], &w, &h);// Loading the image
+        std::cout << "width: " << w << " height: " << h << std::endl;
         textures.push_back(MakeTexture(data, w, h)); // Loading the texture and storing it in the textures array
-        stbi_image_free(data); // De-allocating the memory used for that image
+        delete[] data;
     }
 
     drawPictures(textures, rows, columns); // Drawing all the pictures
