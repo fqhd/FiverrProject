@@ -1,8 +1,7 @@
-// badprog.com
 #include <iostream>
 #include <fstream>
-#include <freeglut.h>
 #include <vector>
+#include <GLUT/glut.h>
 
 // This function draws the grid
 void drawGrid(int rows, int columns){
