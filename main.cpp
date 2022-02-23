@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <GLUT/glut.h>
+using namespace std;
 
 // This function draws the grid
 void drawGrid(int rows, int columns){
@@ -39,12 +40,12 @@ GLuint MakeTexture(unsigned char* pixels, int w, int h){
 }
 
 unsigned char* ReadImage(const char* file_name, int* w, int* h){
-    std::ifstream f;
-    f.open(file_name, std::ios::in | std::ios::binary);
+    ifstream f;
+    f.open(file_name, ios::in | ios::binary);
 
     if(!f.is_open()){
-        std::cout << "Failed to open file" << std::endl;
-        return nullptr;
+        cout << "Failed to open file" << endl;
+        return NULL;
     }
 
     const int fileHeaderSize = 14;
@@ -54,9 +55,9 @@ unsigned char* ReadImage(const char* file_name, int* w, int* h){
     f.read(reinterpret_cast<char*>(fileHeader), fileHeaderSize);
 
     if(fileHeader[0] != 'B' || fileHeader[1] != 'M'){
-        std::cout << "File is not a bitmap" << std::endl;
+        cout << "File is not a bitmap" << endl;
         f.close();
-        return nullptr;
+        return NULL;
     }
 
     unsigned char infoHeader[infoHeaderSize];
@@ -88,17 +89,16 @@ unsigned char* ReadImage(const char* file_name, int* w, int* h){
 }
 
 // This function draws a picture in every cell of the grid
-void drawPictures(std::vector<GLuint> textures, int rows, int columns){
+void drawPictures(vector<GLuint> textures, int rows, int columns){
     // Width and height of every cell
     float width = 2.0f / columns;
     float height = 2.0f / rows;
     glEnable(GL_TEXTURE_2D); // Enables texturing
-    glActiveTexture(GL_TEXTURE0);
 
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < columns; j++){
             GLuint index = i * columns + j; // Index of texture in textures array
-           std::cout << index << std::endl;
+           cout << index << endl;
 
             // We bind the current texture
            glBindTexture(GL_TEXTURE_2D, textures[index]);
@@ -126,7 +126,7 @@ void display(void) {
     const int rows = 4;
     const int columns = 3;
 
-    std::vector<const char*> fileNames = {
+    vector<const char*> fileNames = {
         "1.bmp",
         "2.bmp",
         "3.bmp",
@@ -142,11 +142,11 @@ void display(void) {
     };
 
     // Loading all the textures and storing them in a vector of texture IDs(GLuint)
-    std::vector<GLuint> textures;
+    vector<GLuint> textures;
     for(int i = 0; i < rows*columns; i++){
         int w, h; // Width, height and number of channels per pixel in image
         unsigned char* data = ReadImage(fileNames[i], &w, &h);// Loading the image
-        std::cout << "width: " << w << " height: " << h << std::endl;
+        cout << "width: " << w << " height: " << h << endl;
         textures.push_back(MakeTexture(data, w, h)); // Loading the texture and storing it in the textures array
         delete[] data;
     }
