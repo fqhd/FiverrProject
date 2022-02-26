@@ -138,7 +138,7 @@ void drawPictures(int rows, int columns){
     glEnable(GL_TEXTURE_2D); // Enables texturing
     glActiveTexture(GL_TEXTURE0);
     glColor3f(1.0f, 1.0f, 1.0f);
-
+d
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < columns; j++){
             GLuint index = i * columns + j; // Index of texture in textures array
